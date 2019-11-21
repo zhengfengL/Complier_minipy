@@ -10,10 +10,10 @@ $(OBJECT): lex.yy.o  y.tab.o
 	@./$(OBJECT) #编译后立刻运行  
 
 lex.yy.o: lex.yy.c  y.tab.h
-	$(CC) -c lex.yy.c  
+	$(CC) -c lex.yy.c  -w
 
 y.tab.o: y.tab.c
-	$(CC) -c y.tab.c  
+	$(CC) -c y.tab.c  -w
 
 y.tab.c  y.tab.h: $(YACCFILE)
 # bison使用-d参数编译.y文件  

@@ -1,6 +1,7 @@
 %{
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "minipy.h"
 #define YYSTYPE Frame
 extern Frame yylval;
@@ -14,27 +15,39 @@ digit     [0-9]
 
 number   {digit}+
 
+real     {number}"."{number}?|{number}?"."{number}
+
 id       {letter}({letter}|{digit})*
 
-real     {number}'.'{number}?|{number}?'.'{number}
+
 
 %%
 [ \t]+      {/*do nothing , just skip */}
-{number}    { 
-              printf("Get an integer\n");
-              //yylval.t= INT;
-              //yylval.vi = atoi(yytext[0]);
-              //printf("I'm an integer %d !", yylval.vi);
-              return INT;
-            }
 {real}      {
+              yylval.t = Real;
+              yylval.vr = atof(yytext);
+              //PrintFrameInfo(yylval);
               return REAL;
             }
+{number}    { 
+              yylval.t = Int;
+              yylval.vi = atoi(yytext);
+              //PrintFrameInfo(yylval);
+              return INT;
+            }
+
 {id}        {
+              yylval.t = Id;
+              strcpy(yylval.id, yytext);
+              strcpy(yylval.func, yytext);
+              //PrintFrameInfo(yylval);
               return ID; 
             }
 \"(\\.|[^\\"])*\"	{
-             return STRING_LITERAL; 
-                  }
-.|\n        { /*0return yylval = yytext[0];*/}
+              yylval.t = String;
+              strcpy(yylval.vs, yytext);
+              //PrintFrameInfo(yylval);
+              return STRING_LITERAL; 
+            }
+.|\n        { return yytext[0];}
 %%
