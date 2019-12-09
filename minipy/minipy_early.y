@@ -1,5 +1,4 @@
 %{
-#include <math.h>
 #include <stdio.h>
 #include <ctype.h>
 #include "minipy.h"
@@ -38,7 +37,6 @@ stat  : assignExpr
 assignExpr:
         atom_expr '=' assignExpr {
                 //assignment
-                //printf("$1.s\:%d",$1.s);
                 if ($1.s == Undefined) {
                         $$ = $3;
                         strcpy($$.id, $1.id);
@@ -56,13 +54,10 @@ assignExpr:
                 }
                 else if ($1.s == Slice) {
                         if ($3.t != List) {
-                                //yyerror("can only assign an iterable!");
-                                printf("TypeError: can only assign an iterable\n");
-                                yyerror("");        
+                                yyerror("can only assign an iterable!");
                         }
                         else if ($1.vl->length == 0) {
                                 yyerror("can only assign to a nonempty list!");
-                                // can't understand
                         }
                         else {
                                 //pass type check
@@ -130,7 +125,6 @@ assignExpr:
                                 else {
                                         if ($$.vl->length != $3.vl->length) {
                                                 yyerror("attempt to assign sequence to extend slice without matched size!");
-                                                //can't find a test example
                                         }
                                         else {
                                                 if ($$.step > 0) {
@@ -170,7 +164,6 @@ assignExpr:
                 }
                 else {
                         yyerror("This object cannot be assigned!");
-                        //can't find an example
                 }
                 $$.s = None;
         }
@@ -319,39 +312,7 @@ add_expr : add_expr '+' mul_expr {
                         }
                 }
                 else {
-                        if($1.t==Int&&$3.t==List){
-                                printf("TypeError\: unsupported operand type(s) for +: 'int' and 'list'");
-                        }
-                        else if($1.t==List&&$3.t==Int){
-                                printf("TypeError\: can only concatenate list (not \"int\") to list");
-                        }
-                        else if($1.t==List&&$3.t==String){
-                                printf("TypeError\: can only concatenate list (not \"str\") to list");
-                        }
-                        else if($1.t==String&&$3.t==List){
-                                printf("TypeError\: can only concatenate str (not \"list\") to str");
-                        }
-                        else if($1.t==Int&&$3.t==String){
-                                printf("TypeError\: unsupported operand type(s) for +: 'int' and 'str'");
-                        }
-                        else if($1.t==String&&$3.t==Int){
-                                printf("TypeError\: can only concatenate str (not \"int\") to str");
-                        }
-                        else if($1.t==Real&&$3.t==List){
-                                printf("TypeError\: unsupported operand type(s) for +: 'float' and 'list'");
-                        }
-                        else if($1.t==List&&$3.t==Real){
-                                printf("TypeError\: can only concatenate list (not \"float\") to list");
-                        }
-                        else if($1.t==Real&&$3.t==String){
-                                printf("TypeError\: unsupported operand type(s) for +: 'float' and 'str'");
-                        }
-                        else if($1.t==String&&$3.t==Real){
-                                printf("TypeError\: can only concatenate str (not \"float\") to str");
-                        }
-                                yyerror("");
-                                //yyerror("add type mistake!"); 
-                                $$.s = Error;
+                        yyerror("add type mistake!"); $$.s = Error;
                 }
         }
 	 | add_expr '-' mul_expr{ 
@@ -364,26 +325,7 @@ add_expr : add_expr '+' mul_expr {
                         //Printer($$);
                 }
                 else {
-                        char str1[7];
-                        char str2[7];
-                        switch($1.t){
-                                case (Int):{strcpy(str1,"int");break;}
-                                case (Real):{strcpy(str1,"float");break;}
-                                case (String):{strcpy(str1,"str");break;}
-                                case (List):{strcpy(str1,"list");break;}
-                        }
-                        
-                        switch($3.t){
-                                case (Int):{strcpy(str2,"int");break;}
-                                case (Real):{strcpy(str2,"float");break;}
-                                case (String):{strcpy(str2,"str");break;}
-                                case (List):{strcpy(str2,"list");break;}
-                        }
-                        
-                        printf("TypeError\: unsupported operand type(s) for -\: '%s' and '%s'",str1,str2);
-                        //can't show str2
-                        yyerror("");
-                        $$.s = Error;
+                        yyerror("sub type mistake!"); $$.s = Error;
                 }
         }
 	 | mul_expr 
@@ -497,81 +439,20 @@ mul_expr : mul_expr '*' factor{
                         }
                 }
                 else {
-                        char str1[7];
-                        char str2[7];
-                        switch($1.t){
-                                case (Int):{strcpy(str1,"int");break;}
-                                case (Real):{strcpy(str1,"float");break;}
-                                case (String):{strcpy(str1,"str");break;}
-                                case (List):{strcpy(str1,"list");break;}
-                        }
-                        
-                        switch($3.t){
-                                case (Int):{strcpy(str2,"int");break;}
-                                case (Real):{strcpy(str2,"float");break;}
-                                case (String):{strcpy(str2,"str");break;}
-                                case (List):{strcpy(str2,"list");break;}
-                        }
-                        if($1.t==Real||$3.t==Real){
-                                printf("TypeError\: can't multiply sequence by non-int of type 'float'");
-                        }
-                        else {
-                                printf("TypeError\: can't multiply sequence by non-int of type '%s'",str2);
-                        }
-                        yyerror(""); $$.s = Error;
+                        yyerror("mul type mistake!"); $$.s = Error;
                 }
         }
         |  mul_expr '/' factor{ 
                 if (($1.t == Int || $1.t == Real) && ($3.t == Int || $3.t == Real)){
-                        if ($1.t == Int && $3.t == Int){
-                                if($3.vi==0){
-                                        printf("ZeroDivisionError\: integer division or modulo by zero");
-                                        yyerror("");$$.s = Error;
-                                } 
-                                else $$.t = Real; $$.vr = ((float)$1.vi)/$3.vi;
-                        }
-                        else if ($1.t == Int && $3.t == Real){
-                                if($3.vr==0){
-                                        printf("ZeroDivisionError\: integer division or modulo by zero");
-                                        yyerror("");$$.s = Error;
-                                }
-                                else $$.t = Real; $$.vr = $1.vi/$3.vr;
-                        }
-                        else if ($1.t == Real && $3.t == Int){
-                                if($3.vi==0){
-                                        printf("ZeroDivisionError\: float division or modulo by zero");
-                                        yyerror("");$$.s = Error;
-                                }
-                                $$.t = Real; $$.vr = $1.vr/$3.vi;
-                        }
-                        else {
-                                if($3.vr==0){
-                                        printf("ZeroDivisionError\: float division or modulo by zero");
-                                        yyerror("");$$.s = Error;
-                                }
-                                else $$.vr = $1.vr/$3.vr;
-                        }
+                        if ($1.t == Int && $3.t == Int){ $$.t = Real; $$.vr = ((float)$1.vi)/$3.vi;}
+                        else if ($1.t == Int && $3.t == Real){ $$.t = Real; $$.vr = $1.vi/$3.vr;}
+                        else if ($1.t == Real && $3.t == Int){ $$.t = Real; $$.vr = $1.vr/$3.vi;}
+                        else { $$.vr = $1.vr/$3.vr;}
 
                         //Printer($$);
                 }
                 else {
-                        char str1[7];
-                        char str2[7];
-                        switch($1.t){
-                                case (Int):{strcpy(str1,"int");break;}
-                                case (Real):{strcpy(str1,"float");break;}
-                                case (String):{strcpy(str1,"str");break;}
-                                case (List):{strcpy(str1,"list");break;}
-                        }
-                        
-                        switch($3.t){
-                                case (Int):{strcpy(str2,"int");break;}
-                                case (Real):{strcpy(str2,"float");break;}
-                                case (String):{strcpy(str2,"str");break;}
-                                case (List):{strcpy(str2,"list");break;}
-                        }
-                        printf("TypeError\: unsupported operand type(s) for /: '%s' and '%s'",str1,str2);
-                        yyerror(""); $$.s = Error;
+                        yyerror("div type mistake!"); $$.s = Error;
                 }
         }
 	|  mul_expr '%' factor{ 
@@ -580,56 +461,18 @@ mul_expr : mul_expr '*' factor{
 
                         //Printer($$);
                 }
-                else if($1.t == Real  && $3.t == Int ){
-                        int temp=$1.vr/$3.vi;
-                        $$.vr=$1.vr-temp*$3.vi;
-                }
-                else if($1.t == Real  && $3.t == Real ){
-                        int temp=$1.vr/$3.vr;
-                        $$.vr=$1.vr-temp*$3.vr;
-                }
-                else if($1.t == Int && $3.t== Real){
-                        int temp=$1.vi/$3.vr;
-                        $$.vr=$1.vi-temp*$3.vr;
-                }
                 else {
-                        char str1[7];
-                        char str2[7];
-                        switch($1.t){
-                                case (Int):{strcpy(str1,"int");break;}
-                                case (Real):{strcpy(str1,"float");break;}
-                                case (String):{strcpy(str1,"str");break;}
-                                case (List):{strcpy(str1,"list");break;}
-                        }
-                        
-                        switch($3.t){
-                                case (Int):{strcpy(str2,"int");break;}
-                                case (Real):{strcpy(str2,"float");break;}
-                                case (String):{strcpy(str2,"str");break;}
-                                case (List):{strcpy(str2,"list");break;}
-                        }
-                        printf("TypeError\: unsupported operand type(s) for %: '%s' and '%s'",str1,str2);
-                        yyerror(""); $$.s = Error;
+                        yyerror("mod type mistake!"); $$.s = Error;
                 }
         }
         |  factor
         ;
 //fin
-factor : '+' factor {$$=$2;}
+factor : '+' factor 
        | '-' factor {
                if($2.t == Int) { $$.t = Int; $$.vi = -$2.vi; }
                else if($2.t == Real) { $$.t = Real; $$.vr = -$2.vr; }
-               else {
-                        char str1[7];
-                        switch($2.t){
-                                case (Int):{strcpy(str1,"int");break;}
-                                case (Real):{strcpy(str1,"float");break;}
-                                case (String):{strcpy(str1,"str");break;}
-                                case (List):{strcpy(str1,"list");break;}
-                        }
-                       printf("TypeError\: bad operand type for unary -\: '%s'",str1);
-                       yyerror(""); $$.s = Error;
-                }
+               else {yyerror("factor type error!"); $$.s = Error;}
                //Printer($$);
        }
        | atom_expr
@@ -638,79 +481,11 @@ factor : '+' factor {$$=$2;}
 atom_expr : atom 
         | atom_expr  '[' sub_expr  ':' sub_expr  slice_op ']' {
                 //a slice (cannot be a left value)
-                if ($1.t != List&&$1.t!=String){
-                        char str1[7];
-                        switch($1.t){
-                                case (Int):{strcpy(str1,"int");break;}
-                                case (Real):{strcpy(str1,"float");break;}
-                                case (String):{strcpy(str1,"str");break;}
-                                case (List):{strcpy(str1,"list");break;}
-                        }
-                        printf("TypeError\:'%s'object has no attribute '__getitem__'",str1);
-                        yyerror(""); $$.s = Error;
+                if ($1.t != List){
+                        yyerror("Are you f**king kidding me?"); $$.s = Error;
                 }
                 else if ($3.t != Int || $5.t != Int || $6.t != Int) {
-                        printf("TypeError\: slice indices must be integers or None or have an __index__ method");
-                        yyerror(""); $$.s = Error;
-                }
-                else if($1.t==String){//added
-                        $$.t=String;
-                        int len =strlen($1.vs);
-                        //printf("%s",$1.vs);//
-                        //printf("%d\n",&len);//
-                        char strtemp[200];
-                        strncpy(strtemp,$1.vs+1,len-2);
-                        int start, end, step;
-                        int index;
-                        int strtempindex=1;
-                        $$.vs[strtempindex]='"';
-                        step=$6.vi;
-                        //printf("%d--%d",$3.vi,$5.vi);
-                        if($3.s==Noid){
-                                start=0;  
-                        }
-                        else {
-                                if($3.vi>=0){
-                                        start=$3.vi;
-                                }
-                                else{
-                                        start=len+$3.vi-2;
-                                }
-                        }
-                        //printf("start\:%d,end\:%d\n",start,end);//
-                        if($5.s==Noid){
-                                end=len-2;  
-                        }
-                        else {
-                                if($5.vi>=0){
-                                        end=$5.vi;
-                                }
-                                else{
-                                        end=len+$5.vi-2;
-                                }
-                        }
-                        //printf("start\:%d,end\:%d,step\:%d\n",start,end,step);//
-                        if(start<end&&step>0){
-                                index=start;
-                                while(index<end){
-                                        $$.vs[strtempindex]=strtemp[index];
-                                        index+=step;
-                                        strtempindex+=1;
-                                        //printf("index\:%d,strtempindex\:%d\n",index,strtempindex);
-                                        //printf("%s\n",$$.vs);
-                                }
-                        }
-                        else if(start>end&&step<0){
-                                index=start;
-                                while(index>end){
-                                        $$.vs[strtempindex]=strtemp[index];
-                                        index+=step;
-                                        strtempindex+=1;
-                                }
-                        }
-                        $$.vs[strtempindex]='"';
-                        $$.vs[strtempindex+1]='\0';
-                        $$.s=Attribute;
+                        yyerror("slice index is not a Int!"); $$.s = Error;
                 }
                 else {
                         // pass type check
@@ -823,35 +598,17 @@ atom_expr : atom
         }
         | atom_expr  '[' add_expr ']' {
                 //a son (some big problem)
-                if ($1.t != List&&$1.t!=String){
-                        char str1[7];
-                        switch($1.t){
-                                case (Int):{strcpy(str1,"int");break;}
-                                case (Real):{strcpy(str1,"float");break;}
-                                case (String):{strcpy(str1,"str");break;}
-                                case (List):{strcpy(str1,"list");break;}
-                        }
-                        printf("TypeError\:'%s'object has no attribute '__getitem__'",str1);
-                        yyerror(""); $$.s = Error;
+                if ($1.t != List) {
+                        yyerror("Are you f**king kidding me?"); $$.s = Error;
                 }
                 else if ($3.t != Int) {
-                        printf("TypeError\:list indices must be integers, not float");
-                        yyerror(""); $$.s = Error;
-                }
-                else if($1.t==String){
-                        $$.t=String;
-                        //printf("$$.s\:%d",$$.s);
-                        $$.s=Attribute;
-                        $$.vs[0]='"';
-                        $$.vs[1]=$1.vs[$3.vi+1];
-                        $$.vs[2]='"';
-                        $$.vs[3]='\0';
+                        yyerror("List index is not Int!"); $$.s = Error;
                 }
                 else {
                         //pass type check
                         if ($3.vi < 0) { $3.vi += $1.vl->length; }
                         if ($3.vi < 0 || $3.vi >= $1.vl->length) {
-                               yyerror("IndexError\: list index out of range"); $$.s = Error; 
+                               yyerror("List index out of range!"); $$.s = Error; 
                         }
                         else {
                                 //pass semantic check
@@ -877,18 +634,10 @@ atom_expr : atom
                 //function with arguments (cannot be a left value)
                 if (strcmp($1.func, "append") == 0){
                         if($1.t != List){
-                                char str1[7];
-                                switch($1.t){
-                                        case (Int):{strcpy(str1,"int");break;}
-                                        case (Real):{strcpy(str1,"float");break;}
-                                        case (String):{strcpy(str1,"str");break;}
-                                }
-                                printf("AttributeError\: '%s' object has no attribute 'append'",str1);
-                                yyerror("");
+                                yyerror("append is a function for something iterable!");
                         }
                         else if($3.vl->length != 1){
-                                printf("TypeError\: append() takes exactly one argument (%d given)",$3.vl->length);
-                                yyerror("");
+                                yyerror("arg number for append must be 1!");
                         }
                         else {
                                 LN p = (LN)malloc(sizeof(Node));
@@ -903,39 +652,25 @@ atom_expr : atom
                 }
                 //func range
                 else if (strcmp($1.func, "range") == 0){
-                        if(($3.vl->length != 1)&&($3.vl->length != 2) && ($3.vl->length != 3)){
+                        if(($3.vl->length != 2) && ($3.vl->length != 3)){
                                 //Printer($3); printf(" len %d\n", $3.vl->length);
-                                printf("TypeError\: range expected at most 3 arguments, got %d",$3.vl->length);
-                                yyerror("");
+                                yyerror("arg number for range must be 2 or 3!");
                         }
                         else {
-
                                 int start, end, step;
                                 LN arg1 = $3.vl->first;
                                 LN arg2 = arg1->next;
-                                LN arg3 =NULL;
-                                if(arg2){
-                                        arg3 = arg2->next;
+                                LN arg3 = arg2->next;
+                                if(arg3 == NULL && (arg1->t != Int || arg2->t != Int)){
+                                        yyerror("arg type for range must be Int!");
                                 }
-                                if(arg1->t!=Int){
-                                        yyerror("TypeError\: range() integer and argument expected, got float.");
-                                }
-                                else if(arg2&&arg2->t!=Int){
-                                        yyerror("TypeError\: range() integer and argument expected, got float.");
-                                }
-                                else if(arg3&&arg3->t!=Int){
-                                        yyerror("TypeError\: range() integer and argument expected, got float.");
+                                else if (arg3 != NULL && (arg1->t != Int || arg2->t != Int || arg3->t != Int)){
+                                        yyerror("arg type for range must be Int!");
                                 }
                                 else {
                                         //construct range list
-                                        if(arg2==NULL){
-                                                start=1;
-                                                end=arg1->vi;
-                                        }
-                                        else{
-                                                start = arg1->vi;
-                                                end = arg2->vi;
-                                        }
+                                        start = arg1->vi;
+                                        end = arg2->vi;
                                         if (arg3 == NULL){step = 1;}
                                         else {step = arg3->vi;}
 
@@ -971,27 +706,14 @@ atom_expr : atom
                 //func len
                 else if (strcmp($1.func, "len") == 0){
                         if($3.vl->length != 1){
-                                printf("TypeError\: len() takes exactly oen argument (%d given)",$3.vl->length);
-                                yyerror("");
+                                yyerror("arg number for len must be 1!");
                         }
-                        else if($3.vl->first->t != List&&$3.vl->first->t != String){
-                                char str1[7];
-                                switch($3.vl->first->t){
-                                        case (Int):{strcpy(str1,"int");break;}
-                                        case (Real):{strcpy(str1,"float");break;}
-                                }
-                                printf("TypeError\: object of type '%s' has no len()",str1);
-                                yyerror("");
+                        else if($3.vl->first->t != List){
+                                yyerror("arg type for len must be iterable!");
                         }
                         else {
-				if($3.vl->first->t == List){
-                                	$$.t = Int;
-                                	$$.vi = $3.vl->first->vl->length;
-				}
-				else{
-					$$.t=Int;
-					$$.vi = strlen($3.vl->first->vs)-2;
-				}
+                                $$.t = Int;
+                                $$.vi = $3.vl->first->vl->length;
                         }
                 }
                 //func print
@@ -1060,7 +782,7 @@ int main()
 
 void yyerror(char *s)
 {
-        printf("%s\n", s);
+        printf("%s\nrequiescat in pace\n", s);
         Errorflag = 1;
 }
 
